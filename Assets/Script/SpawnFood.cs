@@ -14,18 +14,18 @@ public class SpawnFood : MonoBehaviour {
     // Use this for initialization
     void Start () {
         // Spawn food every 4 seconds, starting in 3
-        InvokeRepeating("Spawn", 3, 4);
+        InvokeRepeating("Spawn", 3, 3);
     }
 
     // Spawn one piece of food
     void Spawn() {
         // x position between left & right border
-        int x = (int)Random.Range(borderLeft.position.x,
-                                  borderRight.position.x);
+        int x = (int)Random.Range(borderLeft.position.x +1f,
+                                  borderRight.position.x -1f);
 
         // y position between top & bottom border
-        int y = (int)Random.Range(borderBottom.position.y,
-                                  borderTop.position.y);
+        int y = (int)Random.Range(borderBottom.position.y +1,
+                                  borderTop.position.y -1);
 
         // Instantiate the food at (x, y)
         Instantiate(foodPrefab,

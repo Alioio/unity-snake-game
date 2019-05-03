@@ -2,98 +2,504 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using MLAgents;
 
-public class Snake : MonoBehaviour {
-	// Did the snake eat something?
-	bool ate = false;
+public class Snake : Agent {
+
+    private AgentArea myArea;
+
+    // Did the snake eat something?
+    bool ate = false;
 
 	//Did user died?
-	bool isDied = false;
+	public bool isDied = false;
 
 	// Tail Prefab
 	public GameObject tailPrefab;
+    int prevTailcount = 0;
 
 	// Current Movement Direction
 	// (by default it moves to the right)
 	Vector2 dir = Vector2.right;
 
+    public int move = -1;
+
 	// Keep Track of Tail
-	List<Transform> tail = new List<Transform>();
+	public List<Transform> tail = new List<Transform>();
+    public Vector2 forward;
 
-	// Use this for initialization
-	void Start () {
-		// Move the Snake every 300ms
-		InvokeRepeating("Move", 0.3f, 0.3f); 
-	}
+    #region Observation variables 
 
-	// Update is called once per frame
-	void Update () {
-		if (!isDied) {
+    RaycastHit2D hitUp;
+    RaycastHit2D hitDown;
+    RaycastHit2D hitRight;
+    RaycastHit2D hitLeft;
+
+    bool didHitUp = false;
+    bool didHitDown = false;
+    bool didHitRight = false;
+    bool didHitLeft = false;
+
+    float upDistance = -1;
+    float downDistance = -1;
+    float rightDistance = -1;
+    float leftDistance = -1;
+
+    int upHitObjectName = -2;
+    int downHitObjectName = -2;
+    int rightHitObjectName = -2;
+    int leftHitObjectName = -2;
+
+    //
+
+    RaycastHit2D hitUpRight;
+    RaycastHit2D hitDownRight;
+    RaycastHit2D hitRightUp;
+    RaycastHit2D hitLeftDown;
+
+    bool didHitUpRight = false;
+    bool didHitDownRight = false;
+    bool didHitRightUp = false;
+    bool didHitLeftDown = false;
+
+    float upRightDistance = -1;
+    float downRightDistance = -1;
+    float rightUpDistance = -1;
+    float leftDownDistance = -1;
+
+    int upRightHitObjectName = -1;
+    int downRightHitObjectName = -1;
+    int rightUpHitObjectName = -1;
+    int leftDownHitObjectName = -1;
+    #endregion
+    
+
+    #region ML-Agents Initialize
+
+    public override void InitializeAgent()
+    {
+        base.InitializeAgent();
+        GameObject area = GameObject.Find("SnakeArea");
+        myArea = area.GetComponent<AgentArea>();
+    }
+
+    public override void AgentReset()
+    {
+        myArea.ResetArea();
+
+        // Move the Snake every 300ms
+        //InvokeRepeating("Move", 0.3f, 0.3f);
+    }
+
+    #endregion
+
+    #region ML-Agents Collect Observation
+
+
+    public override void CollectObservations()
+    {
+        #region Observations for right left up and down
+        hitUp = Physics2D.Raycast(new Vector2(transform.position.x, transform.position.y), Vector2.up);
+
+        if (hitUp.collider != null)
+        {
+            didHitUp = true;
+            upDistance = hitUp.distance;
+
+            if (hitUp.collider.gameObject.tag == "Food")
+            {
+                // food 1
+                upHitObjectName = 1;
+             //   Debug.Log("Oho mal Food erkannt " + hitUp.distance);
+            }
+            else if (hitUp.collider.gameObject.tag == "border") {
+                // border 2
+                upHitObjectName = 2;
+            }
+            else if (hitUp.collider.gameObject.tag == "tail" && hitUp.collider.gameObject.transform != transform)
+            {
+                // tail 3
+                upHitObjectName = 3;
+            }
+
+        }
+        else
+        {
+            didHitUp = false;
+            upDistance = -1;
+            upHitObjectName = -1;
+        }
+
+       // raycast down
+       hitDown = Physics2D.Raycast(transform.position, Vector2.down);
+
+        if (hitDown.collider != null)
+        {
+            didHitDown = true;
+            downDistance = hitDown.distance;
+
+            if (hitDown.collider.gameObject.tag == "Food")
+            {
+                // food 1
+                downHitObjectName = 1;
+               // Debug.Log("Oho mal Food erkannt " + hitDown.distance);
+            }
+            else if (hitDown.collider.gameObject.tag == "border")
+            {
+                // border 2
+                downHitObjectName = 2;
+            }
+            else if (hitDown.collider.gameObject.tag == "tail" && hitUp.collider.gameObject.transform != transform)
+            {
+                // tail 3
+                downHitObjectName = 3;
+            }
+
+        }
+        else
+        {
+            didHitDown = false;
+            downDistance = -1;
+            downHitObjectName = -1;
+        }
+
+        // raycast right
+        hitRight = Physics2D.Raycast(transform.position, Vector2.right);
+
+        if (hitRight.collider != null)
+        {
+            didHitRight = true;
+            rightDistance = hitRight.distance;
+
+            if (hitRight.collider.gameObject.tag == "Food")
+            {
+                // food 1
+                rightHitObjectName = 1;
+               // Debug.Log("Oho mal Food erkannt " + hitRight.distance);
+            }
+            else if (hitRight.collider.gameObject.tag == "border")
+            {
+                // border 2
+                rightHitObjectName = 2;
+            }
+            else if (hitRight.collider.gameObject.tag == "tail" && hitUp.collider.gameObject.transform != transform)
+            {
+                // tail 3
+                rightHitObjectName = 3;
+            }
+
+        }
+        else
+        {
+            didHitRight = false;
+            rightDistance = -1;
+            rightHitObjectName = -1;
+        }
+
+        // raycast left
+        hitLeft = Physics2D.Raycast(transform.position, Vector2.left);
+
+        if (hitLeft.collider != null)
+        {
+            didHitLeft = true;
+            leftDistance =hitLeft.distance;
+
+            if (hitLeft.collider.gameObject.tag == "Food")
+            {
+                // food 1
+                leftHitObjectName = 1;
+              //  Debug.Log("Oho mal Food erkannt " + hitLeft.distance);
+            }
+            else if (hitLeft.collider.gameObject.tag == "border")
+            {
+                // border 2
+                leftHitObjectName = 2;
+            }
+            else if (hitLeft.collider.gameObject.tag == "tail" && hitUp.collider.gameObject.transform != transform)
+            {
+                // tail 3
+                leftHitObjectName = 3;
+            }
+        }
+        else
+        {
+            didHitLeft = false;
+            leftDistance = -1;
+            leftHitObjectName = -1;
+        }
+
+        #endregion
+
+
+        #region Observations for the diagonals
+
+        // raycast upRight
+        hitUpRight = Physics2D.Raycast(transform.position, new Vector2(1,-1));
+
+        if (hitUpRight.collider != null)
+        {
+            didHitUpRight = true;
+            upRightDistance = hitUpRight.distance;
+
+            if (hitUpRight.collider.gameObject.tag == "Food")
+            {
+                // food 1
+                upRightHitObjectName = 1;
+               // Debug.Log("Oho mal Food erkannt " + hitUpRight.distance);
+            }
+            else if (hitUpRight.collider.gameObject.tag == "border")
+            {
+                // border 2
+                upRightHitObjectName = 2;
+            }
+            else if (hitUpRight.collider.gameObject.tag == "tail" && hitUp.collider.gameObject.transform != transform)
+            {
+                // tail 3
+                upRightHitObjectName = 3;
+            }
+
+        }
+        else
+        {
+            didHitUpRight = false;
+            upRightDistance = -1;
+            upRightHitObjectName = -1;
+        }
+
+        // raycast down
+        hitDownRight = Physics2D.Raycast(transform.position, new Vector2(-1, 1));
+
+        if (hitDownRight.collider != null)
+        {
+            didHitDownRight = true;
+            downRightDistance = hitDownRight.distance;
+
+            if (hitDownRight.collider.gameObject.tag == "Food")
+            {
+                // food 1
+                downRightHitObjectName = 1;
+             //   Debug.Log("Oho mal Food erkannt " + hitDownRight.distance);
+            }
+            else if (hitDownRight.collider.gameObject.tag == "border")
+            {
+                // border 2
+                downRightHitObjectName = 2;
+            }
+            else if (hitDownRight.collider.gameObject.tag == "tail" && hitUp.collider.gameObject.transform != transform)
+            {
+                // tail 3
+                downRightHitObjectName = 3;
+            }
+
+        }
+        else
+        {
+            didHitDownRight = false;
+            downRightDistance = -1;
+            downRightHitObjectName = -1;
+
+        }
+
+        // raycast right
+        hitRightUp = Physics2D.Raycast(transform.position, new Vector2(1, 1));
+
+        if (hitRightUp.collider != null)
+        {
+            didHitRightUp = true;
+            rightUpDistance = hitRightUp.distance;
+
+            if (hitRightUp.collider.gameObject.tag == "Food")
+            {
+                // food 1
+                rightUpHitObjectName = 1;
+               // Debug.Log("Oho mal Food erkannt " + hitRightUp.distance);
+            }
+            else if (hitRightUp.collider.gameObject.tag == "border")
+            {
+                // border 2
+                rightUpHitObjectName = 2;
+            }
+            else if (hitRightUp.collider.gameObject.tag == "tail" && hitUp.collider.gameObject.transform != transform)
+            {
+                // tail 3
+                rightUpHitObjectName = 3;
+            }
+        }
+        else
+        {
+            didHitRightUp = false;
+            rightUpDistance = -1;
+            rightUpHitObjectName = -1;
+        }
+
+        // raycast left
+        hitLeftDown = Physics2D.Raycast(transform.position, new Vector2(-1, -1));
+
+        if (hitLeftDown.collider != null)
+        {
+            didHitLeftDown = true;
+            leftDownDistance = hitLeftDown.distance;
+
+
+            if (hitLeftDown.collider.gameObject.tag == "Food")
+            {
+                // food 1
+                leftDownHitObjectName = 1;
+              //  Debug.Log("Oho mal Food erkannt "+hitLeft.distance);
+            }
+            else if (hitLeftDown.collider.gameObject.tag == "border")
+            {
+                // border 2
+                leftDownHitObjectName = 2;
+            }
+            else if (hitLeftDown.collider.gameObject.tag == "tail" && hitUp.collider.gameObject.transform != transform)
+            {
+                // tail 3
+                leftDownHitObjectName = 3;
+            }
+
+        }
+        else
+        {
+            didHitLeftDown = false;
+            leftDownDistance = -1;
+            leftDownHitObjectName = -1;
+        }
+     //   Debug.Log(upDistance +"  "+rightDistance +"    " + "    " +downDistance + "    " +leftDownDistance + "    " +rightUpDistance + "    " +upRightDistance + "    " +downRightDistance + "    " + upHitObjectName + "    " + didHitUp + " Down:   " + downDistance + "    " + downHitObjectName + "    " + didHitDown);
+
+        #endregion
+
+        #region sending Observations to the NN
+
+        AddVectorObs(didHitUp); AddVectorObs(upDistance); AddVectorObs(upHitObjectName);
+        AddVectorObs(didHitDown); AddVectorObs(downDistance); AddVectorObs(downHitObjectName);
+        AddVectorObs(didHitRight); AddVectorObs(rightDistance); AddVectorObs(rightHitObjectName);
+        AddVectorObs(didHitLeft); AddVectorObs(leftDistance); AddVectorObs(leftHitObjectName);
+
+        AddVectorObs(didHitUpRight); AddVectorObs(upRightDistance); AddVectorObs(upRightHitObjectName);
+        AddVectorObs(didHitDownRight); AddVectorObs(downRightDistance); AddVectorObs(downRightHitObjectName);
+        AddVectorObs(didHitRightUp); AddVectorObs(rightUpDistance); AddVectorObs(rightUpHitObjectName);
+        AddVectorObs(didHitLeftDown); AddVectorObs(leftDownDistance); AddVectorObs(leftDownHitObjectName);
+       // AddVectorObs(tail.Count);
+        #endregion
+    }
+    #endregion
+
+
+    #region ML-Agents Action
+
+    public override void AgentAction(float[] vectorAction, string textAction)
+    {
+        //#region get Action from NN
+        /*
+        int up = (int)vectorAction[0];
+        int down = (int)vectorAction[1];
+        int right = (int)vectorAction[2];
+        int left = (int)vectorAction[3];
+        #endregion
+
+        Debug.Log("Dir: "+up+"  "+down+"  "+left+"  "+right);
+        */
+         move = (int)vectorAction[0];
+
+        if (!isDied) {
 			// Move in a new Direction?
-			if (Input.GetKey (KeyCode.RightArrow))
-				dir = Vector2.right;
-			else if (Input.GetKey (KeyCode.DownArrow))
-				dir = -Vector2.up;    // '-up' means 'down'
-			else if (Input.GetKey (KeyCode.LeftArrow))
-				dir = -Vector2.right; // '-right' means 'left'
-			else if (Input.GetKey (KeyCode.UpArrow))
-				dir = Vector2.up;
+			if (move == 0)
+				dir = 1f * Vector2.right;
+			else if (move == 1)
+				dir = 1f * -Vector2.up;    // '-up' means 'down'
+			else if (move == 2)
+				dir = 1f * -Vector2.right; // '-right' means 'left'
+			else if (move == 3)
+				dir = 1f * Vector2.up;
 		} else {
-			if (Input.GetKey(KeyCode.R)){
-				//clear the tail
-				tail.Clear();
-
-				//reset to origin
-				transform.position = new Vector3(0, 0, 0);
-
-				//make snake alive
-				isDied = false;
-			}
+            Done();
 		}
+
+        Move();
 	}
 
-	void Move() {
-		if (!isDied) {
-			// Save current position (gap will be here)
-			Vector2 v = transform.position;
+    void Move()
+    {
+       
 
-			// Move head into new direction (now there is a gap)
-			transform.Translate (dir);
+        if (!isDied)
+        {
+            // Save current position (gap will be here)
+            Vector2 v = transform.position;
 
-			// Ate something? Then insert new Element into gap
-			if (ate) {
-				// Load Prefab into the world
-				GameObject g = (GameObject)Instantiate (tailPrefab,
-					              v,
-					              Quaternion.identity);
+            // Move head into new direction (now there is a gap)
+            transform.Translate(dir);
 
-				// Keep track of it in our tail list
-				tail.Insert (0, g.transform);
+            // Ate something? Then insert new Element into gap
+            if (ate)
+            {
+                // Load Prefab into the world
+                GameObject g = (GameObject)Instantiate(tailPrefab,
+                                  v,
+                                  Quaternion.identity);
 
-				// Reset the flag
-				ate = false;
-			} else if (tail.Count > 0) {	// Do we have a Tail?
-					// Move last Tail Element to where the Head was
-					tail.Last ().position = v;
+                // Keep track of it in our tail list
+                tail.Insert(0, g.transform);
 
-					// Add to front of list, remove from the back
-					tail.Insert (0, tail.Last ());
-					tail.RemoveAt (tail.Count - 1);
-			}
-		}
-	}
+                // Reset the flag
+                ate = false;
+            }
+            else if (tail.Count > 0)
+            {   // Do we have a Tail?
+                // Move last Tail Element to where the Head was
+                tail.Last().position = v;
 
-	void OnTriggerEnter2D(Collider2D coll) {
-		// Food?
-		if (coll.name.StartsWith("Food")) {
-			// Get longer in next Move call
-			ate = true;
+                // Add to front of list, remove from the back
+                tail.Insert(0, tail.Last());
+                tail.RemoveAt(tail.Count - 1);
+            }
+        }
 
-			// Remove the Food
-			Destroy(coll.gameObject);
-		} else { 	// Collided with Tail or Border
-			isDied = true;
-		}
-	}
+        if (transform.position.x >= 35 || transform.position.x <= -34 || transform.position.y >= 23 || transform.position.y <= -25 )
+        {
+            isDied = true;
+           // AddReward(-1f);
+            Done();
+        }
+
+        if (prevTailcount != tail.Count) {
+            AddReward(+1f);
+        }
+
+        prevTailcount = tail.Count;
+
+    }
+
+    #endregion
+
+    #region Handling Collision
+
+    void OnTriggerEnter2D(Collider2D coll)
+    {
+        // Food?
+        if (coll.name.StartsWith("Food"))
+        {
+            // Get longer in next Move call
+            ate = true;
+
+            // Remove the Food
+            Destroy(coll.gameObject);
+            if (ate) {
+                Debug.Log("Mal was gegegessen!!!! ");
+            }
+
+            AddReward(0.05f);
+        }
+        else
+        {   // Collided with Tail or Border
+            isDied = true;
+           // AddReward(-1f);
+            Done();
+           // Debug.Log("Gegen mauer oder schwanz gestossen!");
+        }
+
+    }
+
+    #endregion
 }
- 
