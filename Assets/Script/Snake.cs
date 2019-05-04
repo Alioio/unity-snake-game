@@ -50,8 +50,6 @@ public class Snake : Agent {
     int rightHitObjectName = -2;
     int leftHitObjectName = -2;
 
-    //
-
     RaycastHit2D hitUpRight;
     RaycastHit2D hitDownRight;
     RaycastHit2D hitRightUp;
@@ -88,17 +86,38 @@ public class Snake : Agent {
         myArea.ResetArea();
 
         // Move the Snake every 300ms
-        //InvokeRepeating("Move", 0.3f, 0.3f);
+        InvokeRepeating("Move", 0.3f, 0.3f);
     }
 
     #endregion
 
     #region ML-Agents Collect Observation
 
-
     public override void CollectObservations()
     {
-        #region Observations for right left up and down
+        
+        SetUpObservationValues();
+
+        SetDownObservationValues();
+
+        SetRightObservationValues();
+
+        SetLeftObservationValues();
+
+        SetUpRightObservationValues();
+
+        SetDownRightObservationValues();
+
+        SetRightUptObservationValues();
+
+        SetLeftDownObservationValues();
+        
+    //    Debug.Log(rightHitObjectName+"  "+leftHitObjectName+"   "+upHitObjectName+"   "+downHitObjectName+"   "+downRightHitObjectName+"   "+upRightHitObjectName+"   "+leftDownHitObjectName+"   "+rightUpHitObjectName);
+
+    }
+
+    private void SetUpObservationValues() {
+
         hitUp = Physics2D.Raycast(new Vector2(transform.position.x, transform.position.y), Vector2.up);
 
         if (hitUp.collider != null)
@@ -110,9 +129,10 @@ public class Snake : Agent {
             {
                 // food 1
                 upHitObjectName = 1;
-             //   Debug.Log("Oho mal Food erkannt " + hitUp.distance);
+                //   Debug.Log("Oho mal Food erkannt " + hitUp.distance);
             }
-            else if (hitUp.collider.gameObject.tag == "border") {
+            else if (hitUp.collider.gameObject.tag == "border")
+            {
                 // border 2
                 upHitObjectName = 2;
             }
@@ -126,12 +146,20 @@ public class Snake : Agent {
         else
         {
             didHitUp = false;
-            upDistance = -1;
-            upHitObjectName = -1;
+            upDistance = 0;
+            upHitObjectName = 0;
         }
 
-       // raycast down
-       hitDown = Physics2D.Raycast(transform.position, Vector2.down);
+        AddVectorObs(didHitUp);
+        AddVectorObs(upDistance);
+        AddVectorObs(upHitObjectName);
+
+    }
+
+    private void SetDownObservationValues() {
+
+        // raycast down
+        hitDown = Physics2D.Raycast(transform.position, Vector2.down);
 
         if (hitDown.collider != null)
         {
@@ -142,14 +170,14 @@ public class Snake : Agent {
             {
                 // food 1
                 downHitObjectName = 1;
-               // Debug.Log("Oho mal Food erkannt " + hitDown.distance);
+                // Debug.Log("Oho mal Food erkannt " + hitDown.distance);
             }
             else if (hitDown.collider.gameObject.tag == "border")
             {
                 // border 2
                 downHitObjectName = 2;
             }
-            else if (hitDown.collider.gameObject.tag == "tail" && hitUp.collider.gameObject.transform != transform)
+            else if (hitDown.collider.gameObject.tag == "tail" && hitDown.collider.gameObject.transform != transform)
             {
                 // tail 3
                 downHitObjectName = 3;
@@ -159,9 +187,17 @@ public class Snake : Agent {
         else
         {
             didHitDown = false;
-            downDistance = -1;
-            downHitObjectName = -1;
+            downDistance = 0;
+            downHitObjectName = 0;
         }
+
+        AddVectorObs(didHitDown);
+        AddVectorObs(downDistance);
+        AddVectorObs(downHitObjectName);
+
+    }
+
+    private void SetRightObservationValues() {
 
         // raycast right
         hitRight = Physics2D.Raycast(transform.position, Vector2.right);
@@ -175,14 +211,14 @@ public class Snake : Agent {
             {
                 // food 1
                 rightHitObjectName = 1;
-               // Debug.Log("Oho mal Food erkannt " + hitRight.distance);
+                // Debug.Log("Oho mal Food erkannt " + hitRight.distance);
             }
             else if (hitRight.collider.gameObject.tag == "border")
             {
                 // border 2
                 rightHitObjectName = 2;
             }
-            else if (hitRight.collider.gameObject.tag == "tail" && hitUp.collider.gameObject.transform != transform)
+            else if (hitRight.collider.gameObject.tag == "tail" && hitRight.collider.gameObject.transform != transform)
             {
                 // tail 3
                 rightHitObjectName = 3;
@@ -192,9 +228,17 @@ public class Snake : Agent {
         else
         {
             didHitRight = false;
-            rightDistance = -1;
-            rightHitObjectName = -1;
+            rightDistance = 0;
+            rightHitObjectName = 0;
         }
+
+        AddVectorObs(didHitRight);
+        AddVectorObs(rightDistance);
+        AddVectorObs(rightHitObjectName);
+
+    }
+
+    private void SetLeftObservationValues() {
 
         // raycast left
         hitLeft = Physics2D.Raycast(transform.position, Vector2.left);
@@ -202,20 +246,20 @@ public class Snake : Agent {
         if (hitLeft.collider != null)
         {
             didHitLeft = true;
-            leftDistance =hitLeft.distance;
+            leftDistance = hitLeft.distance;
 
             if (hitLeft.collider.gameObject.tag == "Food")
             {
                 // food 1
                 leftHitObjectName = 1;
-              //  Debug.Log("Oho mal Food erkannt " + hitLeft.distance);
+                //  Debug.Log("Oho mal Food erkannt " + hitLeft.distance);
             }
             else if (hitLeft.collider.gameObject.tag == "border")
             {
                 // border 2
                 leftHitObjectName = 2;
             }
-            else if (hitLeft.collider.gameObject.tag == "tail" && hitUp.collider.gameObject.transform != transform)
+            else if (hitLeft.collider.gameObject.tag == "tail" && hitLeft.collider.gameObject.transform != transform)
             {
                 // tail 3
                 leftHitObjectName = 3;
@@ -224,17 +268,19 @@ public class Snake : Agent {
         else
         {
             didHitLeft = false;
-            leftDistance = -1;
-            leftHitObjectName = -1;
+            leftDistance = 0;
+            leftHitObjectName = 0;
         }
 
-        #endregion
+        AddVectorObs(didHitLeft);
+        AddVectorObs(leftDistance);
+        AddVectorObs(leftHitObjectName);
 
+    }
 
-        #region Observations for the diagonals
+    private void SetUpRightObservationValues() {
 
-        // raycast upRight
-        hitUpRight = Physics2D.Raycast(transform.position, new Vector2(1,-1));
+        hitUpRight = Physics2D.Raycast(transform.position, new Vector2(1, -1));
 
         if (hitUpRight.collider != null)
         {
@@ -245,14 +291,14 @@ public class Snake : Agent {
             {
                 // food 1
                 upRightHitObjectName = 1;
-               // Debug.Log("Oho mal Food erkannt " + hitUpRight.distance);
+                // Debug.Log("Oho mal Food erkannt " + hitUpRight.distance);
             }
             else if (hitUpRight.collider.gameObject.tag == "border")
             {
                 // border 2
                 upRightHitObjectName = 2;
             }
-            else if (hitUpRight.collider.gameObject.tag == "tail" && hitUp.collider.gameObject.transform != transform)
+            else if (hitUpRight.collider.gameObject.tag == "tail" && hitUpRight.collider.gameObject.transform != transform)
             {
                 // tail 3
                 upRightHitObjectName = 3;
@@ -262,9 +308,17 @@ public class Snake : Agent {
         else
         {
             didHitUpRight = false;
-            upRightDistance = -1;
-            upRightHitObjectName = -1;
+            upRightDistance = 0;
+            upRightHitObjectName = 0;
         }
+
+        AddVectorObs(didHitUpRight);
+        AddVectorObs(upRightDistance);
+        AddVectorObs(upRightHitObjectName);
+
+    }
+
+    private void SetDownRightObservationValues() {
 
         // raycast down
         hitDownRight = Physics2D.Raycast(transform.position, new Vector2(-1, 1));
@@ -278,14 +332,14 @@ public class Snake : Agent {
             {
                 // food 1
                 downRightHitObjectName = 1;
-             //   Debug.Log("Oho mal Food erkannt " + hitDownRight.distance);
+                //   Debug.Log("Oho mal Food erkannt " + hitDownRight.distance);
             }
             else if (hitDownRight.collider.gameObject.tag == "border")
             {
                 // border 2
                 downRightHitObjectName = 2;
             }
-            else if (hitDownRight.collider.gameObject.tag == "tail" && hitUp.collider.gameObject.transform != transform)
+            else if (hitDownRight.collider.gameObject.tag == "tail" && hitDownRight.collider.gameObject.transform != transform)
             {
                 // tail 3
                 downRightHitObjectName = 3;
@@ -295,10 +349,18 @@ public class Snake : Agent {
         else
         {
             didHitDownRight = false;
-            downRightDistance = -1;
-            downRightHitObjectName = -1;
+            downRightDistance = 0;
+            downRightHitObjectName = 0;
 
         }
+
+        AddVectorObs(didHitDownRight);
+        AddVectorObs(downRightDistance);
+        AddVectorObs(downRightHitObjectName);
+
+    }
+
+    private void SetRightUptObservationValues() {
 
         // raycast right
         hitRightUp = Physics2D.Raycast(transform.position, new Vector2(1, 1));
@@ -312,14 +374,14 @@ public class Snake : Agent {
             {
                 // food 1
                 rightUpHitObjectName = 1;
-               // Debug.Log("Oho mal Food erkannt " + hitRightUp.distance);
+                // Debug.Log("Oho mal Food erkannt " + hitRightUp.distance);
             }
             else if (hitRightUp.collider.gameObject.tag == "border")
             {
                 // border 2
                 rightUpHitObjectName = 2;
             }
-            else if (hitRightUp.collider.gameObject.tag == "tail" && hitUp.collider.gameObject.transform != transform)
+            else if (hitRightUp.collider.gameObject.tag == "tail" && hitRightUp.collider.gameObject.transform != transform)
             {
                 // tail 3
                 rightUpHitObjectName = 3;
@@ -328,9 +390,17 @@ public class Snake : Agent {
         else
         {
             didHitRightUp = false;
-            rightUpDistance = -1;
-            rightUpHitObjectName = -1;
+            rightUpDistance = 0;
+            rightUpHitObjectName = 0;
         }
+
+        AddVectorObs(didHitRightUp);
+        AddVectorObs(rightUpDistance);
+        AddVectorObs(rightUpHitObjectName);
+
+    }
+
+    private void SetLeftDownObservationValues() {
 
         // raycast left
         hitLeftDown = Physics2D.Raycast(transform.position, new Vector2(-1, -1));
@@ -345,14 +415,14 @@ public class Snake : Agent {
             {
                 // food 1
                 leftDownHitObjectName = 1;
-              //  Debug.Log("Oho mal Food erkannt "+hitLeft.distance);
+                //  Debug.Log("Oho mal Food erkannt "+hitLeft.distance);
             }
             else if (hitLeftDown.collider.gameObject.tag == "border")
             {
                 // border 2
                 leftDownHitObjectName = 2;
             }
-            else if (hitLeftDown.collider.gameObject.tag == "tail" && hitUp.collider.gameObject.transform != transform)
+            else if (hitLeftDown.collider.gameObject.tag == "tail" && hitLeftDown.collider.gameObject.transform != transform)
             {
                 // tail 3
                 leftDownHitObjectName = 3;
@@ -362,66 +432,43 @@ public class Snake : Agent {
         else
         {
             didHitLeftDown = false;
-            leftDownDistance = -1;
-            leftDownHitObjectName = -1;
+            leftDownDistance = 0;
+            leftDownHitObjectName = 0;
         }
-     //   Debug.Log(upDistance +"  "+rightDistance +"    " + "    " +downDistance + "    " +leftDownDistance + "    " +rightUpDistance + "    " +upRightDistance + "    " +downRightDistance + "    " + upHitObjectName + "    " + didHitUp + " Down:   " + downDistance + "    " + downHitObjectName + "    " + didHitDown);
 
-        #endregion
+        AddVectorObs(didHitLeftDown);
+        AddVectorObs(leftDownDistance);
+        AddVectorObs(leftDownHitObjectName);
 
-        #region sending Observations to the NN
-
-        AddVectorObs(didHitUp); AddVectorObs(upDistance); AddVectorObs(upHitObjectName);
-        AddVectorObs(didHitDown); AddVectorObs(downDistance); AddVectorObs(downHitObjectName);
-        AddVectorObs(didHitRight); AddVectorObs(rightDistance); AddVectorObs(rightHitObjectName);
-        AddVectorObs(didHitLeft); AddVectorObs(leftDistance); AddVectorObs(leftHitObjectName);
-
-        AddVectorObs(didHitUpRight); AddVectorObs(upRightDistance); AddVectorObs(upRightHitObjectName);
-        AddVectorObs(didHitDownRight); AddVectorObs(downRightDistance); AddVectorObs(downRightHitObjectName);
-        AddVectorObs(didHitRightUp); AddVectorObs(rightUpDistance); AddVectorObs(rightUpHitObjectName);
-        AddVectorObs(didHitLeftDown); AddVectorObs(leftDownDistance); AddVectorObs(leftDownHitObjectName);
-       // AddVectorObs(tail.Count);
-        #endregion
     }
-    #endregion
 
+    #endregion
 
     #region ML-Agents Action
 
     public override void AgentAction(float[] vectorAction, string textAction)
     {
-        //#region get Action from NN
-        /*
-        int up = (int)vectorAction[0];
-        int down = (int)vectorAction[1];
-        int right = (int)vectorAction[2];
-        int left = (int)vectorAction[3];
-        #endregion
-
-        Debug.Log("Dir: "+up+"  "+down+"  "+left+"  "+right);
-        */
          move = (int)vectorAction[0];
 
         if (!isDied) {
 			// Move in a new Direction?
 			if (move == 0)
-				dir = 1f * Vector2.right;
+				dir =  Vector2.right;
 			else if (move == 1)
-				dir = 1f * -Vector2.up;    // '-up' means 'down'
+				dir = -Vector2.up;    // '-up' means 'down'
 			else if (move == 2)
-				dir = 1f * -Vector2.right; // '-right' means 'left'
+				dir = -Vector2.right; // '-right' means 'left'
 			else if (move == 3)
-				dir = 1f * Vector2.up;
+				dir = Vector2.up;
 		} else {
             Done();
 		}
 
-        Move();
+      //  Move();
 	}
 
     void Move()
-    {
-       
+    { 
 
         if (!isDied)
         {
@@ -459,12 +506,11 @@ public class Snake : Agent {
         if (transform.position.x >= 35 || transform.position.x <= -34 || transform.position.y >= 23 || transform.position.y <= -25 )
         {
             isDied = true;
-           // AddReward(-1f);
             Done();
         }
 
         if (prevTailcount != tail.Count) {
-            AddReward(+1f);
+            AddReward(3f);
         }
 
         prevTailcount = tail.Count;
