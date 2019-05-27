@@ -10,6 +10,7 @@ public class SpawnFood : MonoBehaviour {
     public Transform borderBottom;
     public Transform borderLeft;
     public Transform borderRight;
+    GameObject[] foods;
 
     // Use this for initialization
     void Start () {
@@ -18,18 +19,31 @@ public class SpawnFood : MonoBehaviour {
     }
 
     // Spawn one piece of food
-    void Spawn() {
-        // x position between left & right border
-        int x = (int)Random.Range(borderLeft.position.x +3f,
-                                  borderRight.position.x -3f);
+    public void Spawn() {
 
-        // y position between top & bottom border
-        int y = (int)Random.Range(borderBottom.position.y +3,
-                                  borderTop.position.y -3);
+        foods = GameObject.FindGameObjectsWithTag("Food");
 
-        // Instantiate the food at (x, y)
-        Instantiate(foodPrefab,
-                    new Vector2(x, y),
-                    Quaternion.identity); // default rotation
+        if (foods.Length == 0)
+        {
+            int i = 0;
+
+            do
+            {
+                // x position between left & right border
+                int x = (int)Random.Range(borderLeft.position.x + 3f,
+                                          borderRight.position.x - 3f);
+
+                // y position between top & bottom border
+                int y = (int)Random.Range(borderBottom.position.y + 3,
+                                          borderTop.position.y - 3);
+
+                // Instantiate the food at (x, y)
+                Instantiate(foodPrefab,
+                            new Vector2(x, y),
+                            Quaternion.identity); // default rotation
+                i++;
+            } while (i < 4);
+
+        }
     }
 }

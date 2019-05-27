@@ -22,7 +22,7 @@ public class Snake : Agent
     // Current Movement Direction
     // (by default it moves to the right)
     Vector2 dir = Vector2.right;
-
+    float life = 80;
     public int move = -1;
 
     // Keep Track of Tail
@@ -85,10 +85,11 @@ public class Snake : Agent
 
     public override void AgentReset()
     {
+        life = 60;
         myArea.ResetArea();
 
         // Move the Snake every 300ms
-        // InvokeRepeating("Move", 0.3f, 0.3f);
+         InvokeRepeating("Move", 0.3f, 0.3f);
     }
 
     #endregion
@@ -477,7 +478,7 @@ public class Snake : Agent
             Done();
         }
 
-        Move();
+      //  Move();
     }
 
     void Move()
@@ -544,11 +545,11 @@ public class Snake : Agent
             }
         }
 
-        if (transform.position.x >= 35 || transform.position.x <= -34 || transform.position.y >= 23 || transform.position.y <= -25)
+        if ( transform.position.x >= 35 || transform.position.x <= -34 || transform.position.y >= 23 || transform.position.y <= -25 ||  life <= 0 )
         {
             prevTailcount = 0;
             isDied = true;
-            AddReward(-40f);
+           // AddReward(-12f);
             Done();
         }
 
@@ -556,11 +557,12 @@ public class Snake : Agent
         if (prevTailcount != tail.Count)
         {
             Debug.Log("Reward :D " + tail.Count);
-            AddReward(3f);
+            AddReward(6f);
         }
         else
         {
-            AddReward(-0.03f);
+            // AddReward(-0.01f);
+            life -= 0.01f;
         }
 
         prevTailcount = tail.Count;
