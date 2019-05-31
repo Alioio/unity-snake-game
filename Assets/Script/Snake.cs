@@ -22,7 +22,7 @@ public class Snake : Agent
     // Current Movement Direction
     // (by default it moves to the right)
     Vector2 dir = Vector2.right;
-    float life = 80;
+    float life = 30;
     public int move = -1;
 
     // Keep Track of Tail
@@ -73,7 +73,6 @@ public class Snake : Agent
     int leftDownHitObjectName = -1;
     #endregion
 
-
     #region ML-Agents Initialize
 
     public override void InitializeAgent()
@@ -85,11 +84,11 @@ public class Snake : Agent
 
     public override void AgentReset()
     {
-        life = 60;
+        life = 30;
         myArea.ResetArea();
 
         // Move the Snake every 300ms
-         InvokeRepeating("Move", 0.3f, 0.3f);
+        // InvokeRepeating("Move", 0.3f, 0.3f);
     }
 
     #endregion
@@ -478,7 +477,7 @@ public class Snake : Agent
             Done();
         }
 
-      //  Move();
+        Move();
     }
 
     void Move()
@@ -549,7 +548,7 @@ public class Snake : Agent
         {
             prevTailcount = 0;
             isDied = true;
-           // AddReward(-12f);
+            AddReward(-12f);
             Done();
         }
 
